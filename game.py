@@ -16,6 +16,7 @@ def client(E1):
 	pygame.display.set_caption("Online Pygame")
 
 	clock = pygame.time.Clock()  
+	background = pygame.image.load('tennis.jpg')
 	redbar = pygame.image.load('redbar.png')
 	bluebar = pygame.image.load('bluebar.png')
 	ball = pygame.image.load('ball.png')
@@ -30,11 +31,13 @@ def client(E1):
 	x=int(800/2)+100
 	y=int(0)
 	x_change=0
-	ballx_change = 1
+	level = client_socket.recv(1024).decode()
+	ballx_change = int(level)
 	bally_change = ballx_change
 
 	while not crashed:
 		gamedisplay.fill((255,255,255))
+		gamedisplay.blit(background,(0,0))
 		gamedisplay.blit(bluebar,(x-100,0))
 		gamedisplay.blit(ball,(ballx,bally))
 		opponentx = client_socket.recv(1024).decode() 
@@ -64,7 +67,7 @@ def client(E1):
 		elif ballx <= 0:
 			ballx_change = -(ballx_change)
 			ballx_change +=1
-		if bally >= 580 and bally <= 600:
+		if bally >= 560 and bally <= 600:
 			if int(opponentx)<= ballx and ballx <= int(opponentx)+200:
 				bally_change = -(bally_change)
 				if bally_change<0:
@@ -104,7 +107,8 @@ def client(E1):
 	pygame.quit()
 	client_socket.close()
 	quit()
-def server():
+
+def server(level):
 	print("Game made by N.C.Mohit , Enjoy !!!!!")
 	top.destroy()
 	###########################################
@@ -121,10 +125,12 @@ def server():
 	gamedisplay = pygame.display.set_mode((800,600))
 	pygame.display.set_caption("OnlinePyGame")
 
-	clock = pygame.time.Clock()  
+	clock = pygame.time.Clock()
+	background = pygame.image.load('tennis.jpg')  
 	redbar = pygame.image.load('redbar.png')
 	bluebar = pygame.image.load('bluebar.png')
 	ball = pygame.image.load('ball.png')
+
 	#pygame.mixer.music.load('resources/music2.mp3')
 	#pygame.mixer.music.play(-1, 0.0)
 	#pygame.mixer.music.set_volume(0.25)
@@ -136,11 +142,14 @@ def server():
 	crashed = False
 	x=int(800/2)+100
 	y=int(580)
-	ballx_change = 1
+	ballx_change = int(level)
 	bally_change = ballx_change
+	data = level
+	conn.send(data.encode())
 
 	while not crashed:
 		gamedisplay.fill((255,255,255))
+		gamedisplay.blit(background,(0,0))
 		gamedisplay.blit(redbar,(x-100,580))
 		gamedisplay.blit(ball,(ballx,bally))
 		data = str(x-100)
@@ -169,7 +178,7 @@ def server():
 		elif ballx <= 0:
 			ballx_change = -(ballx_change)
 			ballx_change += 1
-		if bally >= 580 and bally <= 600:
+		if bally >= 560 and bally <= 600:
 			if x-100<= ballx and ballx <= x-100+200:
 				bally_change = -(bally_change)
 				if bally_change<0:
@@ -207,26 +216,108 @@ def server():
 	pygame.quit()
 	conn.close()
 	quit()
-top = Tk()
-text = Text(top)
-text.insert(INSERT, "What would you like to do ?\n\n\n(To get a server's IPv4 type 'ipconfig' in cmd in the server host PC)")
-text.pack()
-def run_client():
-	global E1
-	L1 = Label(top, text="Enter Server's IPv4")
-	L1.pack( side = LEFT)
-	E1 = Entry(top, bd =5)
-	E1.pack(side = RIGHT)
-def run_server():
-	server()
-def join():
-	client(E1.get())
-B = Button(top, text ="Create Server", command = run_server)
-C= Button(top,text="Enter Server",command = run_client)
-D = Button(top,text="Join",command = join)
 
-B.pack()
-C.pack()
-D.pack()
-top.title("OnlinePyGame")
-top.mainloop()	
+hostname = socket.gethostname()
+ip = socket.gethostbyname(hostname)
+
+clientrunned = 0
+serverrunned = 0
+
+def run_client():
+	global clientrunned
+	global serverrunned
+	if clientrunned == 0 and serverrunned == 0:
+		global E1
+		global top
+		ei = Label(top, text = "Enter Ip address please \n\n\n\n\n\n\n\n")
+		ei.pack()
+		L1 = Label(top, text="Enter Server's IPv4")
+		L1.pack()
+		E1 = Entry(top, bd =5)
+		E1.pack()
+		D = Button(top,text="Join",command = join)
+		D.pack()
+		F = Button(top,text="Cancel",command = cleanup)
+		F.pack()
+		clientrunned = 1
+
+def runserver():
+	global blah
+	global E2
+	blah.destroy()
+	server(E2.get())
+
+def run_server():
+	global blah
+	global E2
+	if E2.get()=='':
+		root = Tk()
+		text = Text(root)
+		text.insert(INSERT,"You did not enter Hardness")
+		text.pack()
+		root.mainloop()
+	elif E2.get() in ['1','2','3','4','5']:
+		blah = Tk()
+		text = Text(blah)
+		text.insert(INSERT, "Your Ip is : ")
+		text.insert(INSERT,ip)
+		text.pack()
+		button = Button(blah, text="OK",command = runserver)
+		button.pack()
+		blah.mainloop()
+	else:
+		blah = Tk()
+		text = Text(blah)
+		text.insert(INSERT, "Type the correct number u fucking nigger")
+		text.pack()
+		blah.mainloop()
+
+
+
+def hard():
+	global serverrunned
+	global clientrunned
+	if serverrunned == 0 and clientrunned == 0:
+		global E2
+		global top
+		eh = Label(top, text = "Enter level of hardness and after that create server please \n\n\n\n\n\n\n\n")
+		eh.pack()
+		L2 = Label(top,text=" Enter Level of Hardness  ( 1 to 5 ) ")
+		L2.pack()
+		E2 = Entry(top, bd = 5)
+		E2.pack()
+		B = Button(top, text ="Create Server", command = run_server)
+		B.pack()
+		F = Button(top,text="Cancel",command = cleanup)
+		F.pack()
+		serverrunned = 1
+
+def join():
+	global E1
+	client(E1.get())
+
+def cleanup():
+	global serverrunned
+	global clientrunned
+	serverrunned = 0
+	clientrunned = 0
+	global top
+	top.destroy()
+	mainloop()
+	
+def mainloop():
+	global top
+	top = Tk()
+	B1 = Label(top, text = "\n\n\n    What would you like to do ?    \n\n\n    (To get a server's IPv4 type 'ipconfig' in cmd in the server host PC)    \n\n\n    Please enter hardness before creating a server    \n\n") 
+	B1.pack()
+	guide = Label(top, text = "Guidelines:\n1.Control your bar using Mouse\n2.Don't let the ball go behind you\n\n")
+	guide.pack()
+	C = Button(top,text="Enter Ip address and join server",command = run_client)
+	E = Button(top,text="Enter hardness and create server",command = hard)
+	C.pack(side = LEFT)
+	E.pack(side = RIGHT)
+
+	top.title("OnlinePyGame")
+	top.mainloop()
+
+mainloop()
