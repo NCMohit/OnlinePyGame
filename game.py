@@ -268,7 +268,7 @@ def run_server():
 	else:
 		blah = Tk()
 		text = Text(blah)
-		text.insert(INSERT, "Type the correct number u fucking nigger")
+		text.insert(INSERT, " PLease type the correct number")
 		text.pack()
 		blah.mainloop()
 
